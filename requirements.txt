@@ -1,4 +1,0 @@
-glfw
-numpy
-pyopengl
-pyopengl-accelerate
