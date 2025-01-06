@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+mod planet;
 
 /// set up a simple 3D scene
 fn setup(
@@ -6,16 +7,12 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // circular base
+    // planet
+    let planet = planet::Planet::default();
+    let mesh = planet.create_mesh();
     commands.spawn((
-        Mesh3d(meshes.add(Circle::new(4.0))),
-        MeshMaterial3d(materials.add(Color::WHITE)),
-        Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
-    ));
-    // cube
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-        MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
+        Mesh3d(meshes.add(mesh)),
+        MeshMaterial3d(materials.add(Color::srgb_u8(255, 255, 255))),
         Transform::from_xyz(0.0, 0.5, 0.0),
     ));
     // light
@@ -39,4 +36,3 @@ fn main() {
         .add_systems(Startup, setup)
         .run();
 }
-

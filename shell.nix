@@ -7,7 +7,7 @@ mkShell rec {
     pkg-config
   ];
   buildInputs = [
-    lld # Faster linker
+    clang lld # Faster compiles
     udev alsa-lib-with-plugins vulkan-loader # Deps
     libxkbcommon wayland # Wayland
   ];
