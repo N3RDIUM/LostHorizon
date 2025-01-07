@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+
+mod octree;
 mod planet;
 
 /// set up a simple 3D scene
