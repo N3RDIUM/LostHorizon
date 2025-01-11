@@ -98,8 +98,13 @@ impl Node {
     }
 
     pub fn unsplit(&mut self) {
-        self.dispose_children();
-        self.state = NodeState::UNSPLIT;
+        match self.state {
+            NodeState::UNSPLIT => return,
+            NodeState::SPLIT => {
+                self.dispose_children();
+                self.state = NodeState::UNSPLIT;
+            }
+        }
     }
 }
 
