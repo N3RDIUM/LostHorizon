@@ -4,7 +4,7 @@ use bevy::prelude::*;
 pub struct Planet {}
 
 impl Planet {
-    pub fn default() -> Planet {
+    pub fn new() -> Planet {
         Planet {}
     }
 
