@@ -24,7 +24,7 @@ impl Node {
         }
     }
 
-    fn get_split_bounds(bounds: [Vec3; 2]) -> [f32; 9] {
+    fn get_split_points(bounds: [Vec3; 2]) -> [f32; 9] {
         let xmin = bounds[0].x;
         let ymin = bounds[0].y;
         let zmin = bounds[0].z;
@@ -41,7 +41,7 @@ impl Node {
     }
 
     fn get_child_bounds(bounds: [Vec3; 2]) -> [[f32; 6]; 8] {
-        let [xmin, xmid, xmax, ymin, ymid, ymax, zmin, zmid, zmax] = Node::get_split_bounds(bounds);
+        let [xmin, xmid, xmax, ymin, ymid, ymax, zmin, zmid, zmax] = Node::get_split_points(bounds);
 
         return [
             [xmin, xmid, ymin, ymid, zmin, zmid],
@@ -105,3 +105,67 @@ impl Node {
 
 #[derive(Component)]
 pub struct Leaf {}
+
+#[cfg(test)]
+mod octree_node {
+    use super::*;
+
+    #[test]
+    fn get_split_points() {
+        let bounds = [
+            Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            Vec3 {
+                x: 8.0,
+                y: 8.0,
+                z: 8.0,
+            },
+        ];
+
+        let expected_split_points = [0.0, 4.0, 8.0, 0.0, 4.0, 8.0, 0.0, 4.0, 8.0];
+
+        let split_points = Node::get_split_points(bounds);
+
+        assert_eq!(
+            split_points, expected_split_points,
+            "Split points do not match expected values."
+        );
+    }
+
+    #[test]
+    fn get_child_bounds() {
+        let bounds = [
+            Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            Vec3 {
+                x: 8.0,
+                y: 8.0,
+                z: 8.0,
+            },
+        ];
+
+        let expected_bounds = [
+            [0.0, 4.0, 0.0, 4.0, 0.0, 4.0],
+            [4.0, 8.0, 0.0, 4.0, 0.0, 4.0],
+            [0.0, 4.0, 4.0, 8.0, 0.0, 4.0],
+            [4.0, 8.0, 4.0, 8.0, 0.0, 4.0],
+            [0.0, 4.0, 0.0, 4.0, 4.0, 8.0],
+            [4.0, 8.0, 0.0, 4.0, 4.0, 8.0],
+            [0.0, 4.0, 4.0, 8.0, 4.0, 8.0],
+            [4.0, 8.0, 4.0, 8.0, 4.0, 8.0],
+        ];
+
+        let bounds = Node::get_child_bounds(bounds);
+
+        assert_eq!(
+            bounds, expected_bounds,
+            "Split child bounds do not match expected values."
+        );
+    }
+}
