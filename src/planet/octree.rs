@@ -73,7 +73,7 @@ impl Node {
         self.children.push(Arc::new(Mutex::new(new_node)));
     }
 
-    pub fn split(&mut self) {
+    fn split(&mut self) {
         match self.state {
             NodeState::SPLIT => return,
             NodeState::UNSPLIT => {
@@ -96,7 +96,7 @@ impl Node {
         self.children.clear();
     }
 
-    pub fn unsplit(&mut self) {
+    fn unsplit(&mut self) {
         match self.state {
             NodeState::UNSPLIT => return,
             NodeState::SPLIT => {
