@@ -1,8 +1,4 @@
 use bevy::prelude::*;
-
-#[path = "planet/octree.rs"]
-mod octree;
-#[path = "planet/planet.rs"]
 mod planet;
 
 fn setup(

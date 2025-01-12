@@ -6,7 +6,6 @@ enum NodeState {
     SPLIT,
 }
 
-#[derive(Component)]
 pub struct Node {
     bounds: [Vec3; 2],
     child: Leaf,
@@ -74,7 +73,7 @@ impl Node {
         self.children.push(Arc::new(Mutex::new(new_node)));
     }
 
-    pub fn split(mut self) {
+    pub fn split(&mut self) {
         match self.state {
             NodeState::SPLIT => return,
             NodeState::UNSPLIT => {
@@ -106,9 +105,51 @@ impl Node {
             }
         }
     }
+
+    fn unpack_bounds(bounds: [Vec3; 2]) -> [f32; 6] {
+        let [min, max] = bounds;
+
+        let [xmin, ymin, zmin] = [min.x, min.y, min.z];
+        let [xmax, ymax, zmax] = [max.x, max.y, max.z];
+
+        return [xmin, ymin, zmin, xmax, ymax, zmax];
+    }
+
+    fn get_centre(bounds: [Vec3; 2]) -> Vec3 {
+        let [xmin, ymin, zmin, xmax, ymax, zmax] = Node::unpack_bounds(bounds);
+
+        return Vec3 {
+            x: (xmin + xmax) / 2.0,
+            y: (ymin + ymax) / 2.0,
+            z: (zmin + zmax) / 2.0,
+        };
+    }
+
+    fn get_size(bounds: [Vec3; 2]) -> f32 {
+        let [xmin, ymin, zmin, xmax, ymax, zmax] = Node::unpack_bounds(bounds);
+
+        return (((xmax - xmin) * (xmax - xmin)).sqrt()
+            + ((ymax - ymin) * (ymax - ymin)).sqrt()
+            + ((zmax - zmin) * (zmax - zmin)).sqrt())
+            / 3.0;
+    }
+
+    pub fn update(&mut self, cameras: Vec<Vec3>) {
+        let centre = Node::get_centre(self.bounds);
+        let threshold = Node::get_size(self.bounds);
+
+        for camera in cameras.iter() {
+            let distance = centre.distance(*camera);
+
+            if distance < threshold {
+                self.split();
+            } else {
+                self.unsplit();
+            }
+        }
+    }
 }
 
-#[derive(Component)]
 pub struct Leaf {}
 
 #[cfg(test)]
@@ -171,6 +212,85 @@ mod octree_node {
         assert_eq!(
             bounds, expected_bounds,
             "Split child bounds do not match expected values."
+        );
+    }
+
+    #[test]
+    fn unpack_bounds() {
+        let bounds = [
+            Vec3 {
+                x: 0.0,
+                y: 1.0,
+                z: 2.0,
+            },
+            Vec3 {
+                x: 3.0,
+                y: 4.0,
+                z: 5.0,
+            },
+        ];
+
+        let expected_unpack = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
+
+        let unpack = Node::unpack_bounds(bounds);
+
+        assert_eq!(
+            unpack, expected_unpack,
+            "Unpacked bound values do not match expected values."
+        )
+    }
+
+    #[test]
+    fn get_centre() {
+        let bounds = [
+            Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            Vec3 {
+                x: 8.0,
+                y: 8.0,
+                z: 8.0,
+            },
+        ];
+
+        let expected_centre = Vec3 {
+            x: 4.0,
+            y: 4.0,
+            z: 4.0,
+        };
+
+        let centre = Node::get_centre(bounds);
+
+        assert_eq!(
+            centre, expected_centre,
+            "Centre point does not match expected values."
+        );
+    }
+
+    #[test]
+    fn get_size() {
+        let bounds = [
+            Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            Vec3 {
+                x: 8.0,
+                y: 8.0,
+                z: 8.0,
+            },
+        ];
+
+        let expected_size = 8.0;
+
+        let size = Node::get_size(bounds);
+
+        assert!(
+            (size - expected_size).abs() < 1e-6,
+            "Size does not match expected value."
         );
     }
 }

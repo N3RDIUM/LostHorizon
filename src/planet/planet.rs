@@ -12,16 +12,9 @@ impl Planet {
         }
     }
 
-    pub fn noise_function(self, point: [f32; 3]) -> f32 {
-        let [x, y, z] = point;
-
-        // TODO
-        // + return multiple noise values:
-        //     - One for the actual frequency thing
-        //     - One for the material (i.e. texture)
-        
+    pub fn noise_function(self, point: Vec3) -> f32 {
         let mut noise = 1.0;
-        let distance = (x * x + y * y + z * z).sqrt();
+        let distance = Vec3::ZERO.distance(point);
 
         if distance > self.radius {
             noise = 0.0
