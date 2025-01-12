@@ -128,10 +128,18 @@ impl Node {
     fn get_size(bounds: [Vec3; 2]) -> f32 {
         let [xmin, ymin, zmin, xmax, ymax, zmax] = Node::unpack_bounds(bounds);
 
-        return (((xmax - xmin) * (xmax - xmin)).sqrt()
-            + ((ymax - ymin) * (ymax - ymin)).sqrt()
-            + ((zmax - zmin) * (zmax - zmin)).sqrt())
-            / 3.0;
+        let size = vec![
+            ((xmax - xmin) * (xmax - xmin)).sqrt(),
+            ((ymax - ymin) * (ymax - ymin)).sqrt(),
+            ((zmax - zmin) * (zmax - zmin)).sqrt(),
+        ];
+
+        let mut ret = 0.0;
+        if let Some(max) = size.iter().cloned().reduce(f32::max) {
+            ret = max;
+        }
+
+        return ret;
     }
 
     pub fn update(&mut self, cameras: Vec<Vec3>) {
