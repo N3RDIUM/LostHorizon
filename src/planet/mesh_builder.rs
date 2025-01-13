@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-struct MeshBuilder { }
+pub struct MeshBuilder { }
 
 impl MeshBuilder {
     pub fn new() -> MeshBuilder {

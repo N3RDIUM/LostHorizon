@@ -1,14 +1,19 @@
+use crate::planet::octree::Node;
 use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct Planet {
-    radius: f32
+    radius: f32,
+    octree: Node,
 }
 
 impl Planet {
     pub fn new() -> Planet {
+        let octree = Node::new([Vec3::new(-1.0, -1.0, -1.0), Vec3::new(1.0, 1.0, 1.0)]);
+
         Planet {
-            radius: 1.0
+            radius: 1.0,
+            octree,
         }
     }
 

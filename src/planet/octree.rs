@@ -1,5 +1,8 @@
+use crate::planet::mesh_builder::MeshBuilder;
 use bevy::prelude::*;
 use std::sync::{Arc, Mutex};
+
+// TODO: [Vec3; 2] -> struct NodeBounds
 
 enum NodeState {
     UNSPLIT,
@@ -17,7 +20,7 @@ impl Node {
     pub fn new(bounds: [Vec3; 2]) -> Node {
         Node {
             bounds,
-            child: Leaf {},
+            child: Leaf::new(),
             children: vec![],
             state: NodeState::UNSPLIT,
         }
@@ -158,7 +161,17 @@ impl Node {
     }
 }
 
-pub struct Leaf {}
+pub struct Leaf {
+    builder: MeshBuilder,
+}
+
+impl Leaf {
+    fn new() -> Leaf {
+        Leaf {
+            builder: MeshBuilder {},
+        }
+    }
+}
 
 #[cfg(test)]
 mod octree_node {
