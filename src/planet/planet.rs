@@ -27,4 +27,8 @@ impl Planet {
 
         return noise;
     }
+
+    pub fn update_octree(mut self, cameras: Vec<Vec3>) {
+        self.octree.update(cameras);
+    }
 }

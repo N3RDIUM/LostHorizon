@@ -3,6 +3,14 @@ name = "recrash"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "librecrash"
+path = "src/lib.rs"
+
+[[bin]]
+name = "recrash"
+path = "src/main.rs"
+
 [dependencies]
 bevy = { version = "0.15.1", features = [ "dynamic_linking", "wayland" ] }
 
@@ -26,4 +34,3 @@ debug = false
 inherits = "release"
 opt-level = "s"
 strip = "debuginfo"
-

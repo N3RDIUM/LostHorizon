@@ -11,7 +11,7 @@ enum NodeState {
 
 pub struct Node {
     bounds: [Vec3; 2],
-    child: Leaf,
+    _child: Leaf,
     children: Vec<Arc<Mutex<Node>>>,
     state: NodeState,
 }
@@ -20,7 +20,7 @@ impl Node {
     pub fn new(bounds: [Vec3; 2]) -> Node {
         Node {
             bounds,
-            child: Leaf::new(),
+            _child: Leaf::new(),
             children: vec![],
             state: NodeState::UNSPLIT,
         }
@@ -162,13 +162,13 @@ impl Node {
 }
 
 pub struct Leaf {
-    builder: MeshBuilder,
+    _builder: MeshBuilder,
 }
 
 impl Leaf {
     fn new() -> Leaf {
         Leaf {
-            builder: MeshBuilder {},
+            _builder: MeshBuilder {},
         }
     }
 }
