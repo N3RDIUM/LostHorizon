@@ -13,6 +13,7 @@ path = "src/main.rs"
 
 [dependencies]
 bevy = { version = "0.15.1", features = [ "dynamic_linking", "wayland" ] }
+marching-cubes = "0.1.2"
 
 [profile.dev]
 opt-level = 1

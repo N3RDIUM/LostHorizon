@@ -168,7 +168,7 @@ pub struct Leaf {
 impl Leaf {
     fn new() -> Leaf {
         Leaf {
-            _builder: MeshBuilder {},
+            _builder: MeshBuilder::new(),
         }
     }
 }

@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use librecrash::planet::planet::Planet;
+use librecrash::planet::Planet;
 
 fn setup(
     mut commands: Commands,
