@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 mod mesh_builder;
-mod octree;
+pub mod octree;
 
 #[derive(Component)]
 pub struct Planet {
@@ -10,7 +10,10 @@ pub struct Planet {
 
 impl Planet {
     pub fn new() -> Planet {
-        let octree = octree::Node::new([Vec3::new(-1.0, -1.0, -1.0), Vec3::new(1.0, 1.0, 1.0)]);
+        let octree = octree::Node::new(octree::NodeBounds {
+            min: Vec3::new(-1.0, -1.0, -1.0),
+            max: Vec3::new(1.0, 1.0, 1.0),
+        });
 
         Planet {
             radius: 1.0,

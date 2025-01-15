@@ -1,8 +1,10 @@
-use crate::planet::mesh_builder::MeshBuilder;
 use bevy::prelude::*;
 use std::sync::{Arc, Mutex};
 
-// TODO: [Vec3; 2] -> struct NodeBounds
+pub struct NodeBounds {
+    pub min: Vec3,
+    pub max: Vec3,
+}
 
 enum NodeState {
     UNSPLIT,
@@ -10,14 +12,14 @@ enum NodeState {
 }
 
 pub struct Node {
-    bounds: [Vec3; 2],
+    bounds: NodeBounds,
     _child: Leaf,
     children: Vec<Arc<Mutex<Node>>>,
     state: NodeState,
 }
 
 impl Node {
-    pub fn new(bounds: [Vec3; 2]) -> Node {
+    pub fn new(bounds: NodeBounds) -> Node {
         Node {
             bounds,
             _child: Leaf::new(),
@@ -26,14 +28,15 @@ impl Node {
         }
     }
 
-    fn get_split_points(bounds: [Vec3; 2]) -> [f32; 9] {
-        let xmin = bounds[0].x;
-        let ymin = bounds[0].y;
-        let zmin = bounds[0].z;
+    fn get_split_points(bounds: &NodeBounds) -> [f32; 9] {
+        // TODO: Move to impl NodeBounds
+        let xmin = bounds.min.x;
+        let ymin = bounds.min.y;
+        let zmin = bounds.min.z;
 
-        let xmax = bounds[1].x;
-        let ymax = bounds[1].y;
-        let zmax = bounds[1].z;
+        let xmax = bounds.min.x;
+        let ymax = bounds.min.y;
+        let zmax = bounds.min.z;
 
         let xmid = (xmin + xmax) / 2.0;
         let ymid = (ymin + ymax) / 2.0;
@@ -42,7 +45,7 @@ impl Node {
         return [xmin, xmid, xmax, ymin, ymid, ymax, zmin, zmid, zmax];
     }
 
-    fn get_child_bounds(bounds: [Vec3; 2]) -> [[f32; 6]; 8] {
+    fn get_child_bounds(bounds: &NodeBounds) -> [[f32; 6]; 8] {
         let [xmin, xmid, xmax, ymin, ymid, ymax, zmin, zmid, zmax] = Node::get_split_points(bounds);
 
         return [
@@ -60,18 +63,18 @@ impl Node {
     fn add_child(&mut self, bounds: [f32; 6]) {
         let [xmin, xmax, ymin, ymax, zmin, zmax] = bounds;
 
-        let new_node = Node::new([
-            Vec3 {
+        let new_node = Node::new(NodeBounds {
+            min: Vec3 {
                 x: xmin,
                 y: ymin,
                 z: zmin,
             },
-            Vec3 {
+            max: Vec3 {
                 x: xmax,
                 y: ymax,
                 z: zmax,
             },
-        ]);
+        });
 
         self.children.push(Arc::new(Mutex::new(new_node)));
     }
@@ -80,7 +83,7 @@ impl Node {
         match self.state {
             NodeState::SPLIT => return,
             NodeState::UNSPLIT => {
-                let child_bounds = Node::get_child_bounds(self.bounds);
+                let child_bounds = Node::get_child_bounds(&self.bounds);
 
                 for (_, bounds) in child_bounds.iter().enumerate() {
                     self.add_child(*bounds);
@@ -109,8 +112,9 @@ impl Node {
         }
     }
 
-    fn unpack_bounds(bounds: [Vec3; 2]) -> [f32; 6] {
-        let [min, max] = bounds;
+    fn unpack_bounds(bounds: &NodeBounds) -> [f32; 6] {
+        // TODO: Move to impl NodeBounds
+        let [min, max] = [bounds.min, bounds.max];
 
         let [xmin, ymin, zmin] = [min.x, min.y, min.z];
         let [xmax, ymax, zmax] = [max.x, max.y, max.z];
@@ -118,7 +122,8 @@ impl Node {
         return [xmin, ymin, zmin, xmax, ymax, zmax];
     }
 
-    fn get_centre(bounds: [Vec3; 2]) -> Vec3 {
+    fn get_centre(bounds: &NodeBounds) -> Vec3 {
+        // TODO: Move to impl NodeBounds
         let [xmin, ymin, zmin, xmax, ymax, zmax] = Node::unpack_bounds(bounds);
 
         return Vec3 {
@@ -128,7 +133,8 @@ impl Node {
         };
     }
 
-    fn get_size(bounds: [Vec3; 2]) -> f32 {
+    fn get_size(bounds: &NodeBounds) -> f32 {
+        // TODO: Move to impl NodeBounds
         let [xmin, ymin, zmin, xmax, ymax, zmax] = Node::unpack_bounds(bounds);
 
         let size = vec![
@@ -146,8 +152,8 @@ impl Node {
     }
 
     pub fn update(&mut self, cameras: Vec<Vec3>) {
-        let centre = Node::get_centre(self.bounds);
-        let threshold = Node::get_size(self.bounds);
+        let centre = Node::get_centre(&self.bounds);
+        let threshold = Node::get_size(&self.bounds);
 
         for camera in cameras.iter() {
             let distance = centre.distance(*camera);
@@ -161,15 +167,11 @@ impl Node {
     }
 }
 
-pub struct Leaf {
-    _builder: MeshBuilder,
-}
+pub struct Leaf {}
 
 impl Leaf {
     fn new() -> Leaf {
-        Leaf {
-            _builder: MeshBuilder::new(),
-        }
+        Leaf {} // Bounds
     }
 }
 
@@ -179,22 +181,22 @@ mod octree_node {
 
     #[test]
     fn get_split_points() {
-        let bounds = [
-            Vec3 {
+        let bounds = NodeBounds {
+            min: Vec3 {
                 x: 0.0,
                 y: 0.0,
                 z: 0.0,
             },
-            Vec3 {
+            max: Vec3 {
                 x: 8.0,
                 y: 8.0,
                 z: 8.0,
             },
-        ];
+        };
 
         let expected_split_points = [0.0, 4.0, 8.0, 0.0, 4.0, 8.0, 0.0, 4.0, 8.0];
 
-        let split_points = Node::get_split_points(bounds);
+        let split_points = Node::get_split_points(&bounds);
 
         assert_eq!(
             split_points, expected_split_points,
@@ -204,18 +206,18 @@ mod octree_node {
 
     #[test]
     fn get_child_bounds() {
-        let bounds = [
-            Vec3 {
+        let bounds = NodeBounds {
+            min: Vec3 {
                 x: 0.0,
                 y: 0.0,
                 z: 0.0,
             },
-            Vec3 {
+            max: Vec3 {
                 x: 8.0,
                 y: 8.0,
                 z: 8.0,
             },
-        ];
+        };
 
         let expected_bounds = [
             [0.0, 4.0, 0.0, 4.0, 0.0, 4.0],
@@ -228,7 +230,7 @@ mod octree_node {
             [4.0, 8.0, 4.0, 8.0, 4.0, 8.0],
         ];
 
-        let bounds = Node::get_child_bounds(bounds);
+        let bounds = Node::get_child_bounds(&bounds);
 
         assert_eq!(
             bounds, expected_bounds,
@@ -238,22 +240,22 @@ mod octree_node {
 
     #[test]
     fn unpack_bounds() {
-        let bounds = [
-            Vec3 {
+        let bounds = NodeBounds {
+            min: Vec3 {
                 x: 0.0,
-                y: 1.0,
-                z: 2.0,
+                y: 0.0,
+                z: 0.0,
             },
-            Vec3 {
-                x: 3.0,
-                y: 4.0,
-                z: 5.0,
+            max: Vec3 {
+                x: 8.0,
+                y: 8.0,
+                z: 8.0,
             },
-        ];
+        };
 
         let expected_unpack = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
 
-        let unpack = Node::unpack_bounds(bounds);
+        let unpack = Node::unpack_bounds(&bounds);
 
         assert_eq!(
             unpack, expected_unpack,
@@ -263,18 +265,18 @@ mod octree_node {
 
     #[test]
     fn get_centre() {
-        let bounds = [
-            Vec3 {
+        let bounds = NodeBounds {
+            min: Vec3 {
                 x: 0.0,
                 y: 0.0,
                 z: 0.0,
             },
-            Vec3 {
+            max: Vec3 {
                 x: 8.0,
                 y: 8.0,
                 z: 8.0,
             },
-        ];
+        };
 
         let expected_centre = Vec3 {
             x: 4.0,
@@ -282,7 +284,7 @@ mod octree_node {
             z: 4.0,
         };
 
-        let centre = Node::get_centre(bounds);
+        let centre = Node::get_centre(&bounds);
 
         assert_eq!(
             centre, expected_centre,
@@ -292,22 +294,22 @@ mod octree_node {
 
     #[test]
     fn get_size() {
-        let bounds = [
-            Vec3 {
+        let bounds = NodeBounds {
+            min: Vec3 {
                 x: 0.0,
                 y: 0.0,
                 z: 0.0,
             },
-            Vec3 {
+            max: Vec3 {
                 x: 8.0,
                 y: 8.0,
                 z: 8.0,
             },
-        ];
+        };
 
         let expected_size = 8.0;
 
-        let size = Node::get_size(bounds);
+        let size = Node::get_size(&bounds);
 
         assert!(
             (size - expected_size).abs() < 1e-6,
