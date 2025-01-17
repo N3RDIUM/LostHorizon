@@ -34,9 +34,9 @@ impl Node {
         let ymin = bounds.min.y;
         let zmin = bounds.min.z;
 
-        let xmax = bounds.min.x;
-        let ymax = bounds.min.y;
-        let zmax = bounds.min.z;
+        let xmax = bounds.max.x;
+        let ymax = bounds.max.y;
+        let zmax = bounds.max.z;
 
         let xmid = (xmin + xmax) / 2.0;
         let ymid = (ymin + ymax) / 2.0;
@@ -242,18 +242,18 @@ mod octree_node {
     fn unpack_bounds() {
         let bounds = NodeBounds {
             min: Vec3 {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
+                x: 1.0,
+                y: 2.0,
+                z: 3.0,
             },
             max: Vec3 {
-                x: 8.0,
-                y: 8.0,
-                z: 8.0,
+                x: 4.0,
+                y: 5.0,
+                z: 6.0,
             },
         };
 
-        let expected_unpack = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
+        let expected_unpack = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
 
         let unpack = Node::unpack_bounds(&bounds);
 
