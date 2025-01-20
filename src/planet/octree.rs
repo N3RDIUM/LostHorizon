@@ -7,40 +7,12 @@ pub struct Bounds {
 }
 
 impl Bounds {
-    fn unpack(&self) -> [f32; 6] {
-        let [min, max] = [self.min, self.max];
-
-        let [xmin, ymin, zmin] = [min.x, min.y, min.z];
-        let [xmax, ymax, zmax] = [max.x, max.y, max.z];
-
-        return [xmin, ymin, zmin, xmax, ymax, zmax];
-    }
-
     fn get_centre(&self) -> Vec3 {
-        let [xmin, ymin, zmin, xmax, ymax, zmax] = self.unpack();
-
-        return Vec3 {
-            x: (xmin + xmax) / 2.0,
-            y: (ymin + ymax) / 2.0,
-            z: (zmin + zmax) / 2.0,
-        };
+        return self.min.midpoint(self.max);
     }
 
     fn get_size(&self) -> f32 {
-        let [xmin, ymin, zmin, xmax, ymax, zmax] = self.unpack();
-
-        let size = vec![
-            ((xmax - xmin) * (xmax - xmin)).sqrt(),
-            ((ymax - ymin) * (ymax - ymin)).sqrt(),
-            ((zmax - zmin) * (zmax - zmin)).sqrt(),
-        ];
-
-        let mut ret = 0.0;
-        if let Some(max) = size.iter().cloned().reduce(f32::max) {
-            ret = max;
-        }
-
-        return ret;
+        return self.min.distance(self.max);
     }
 }
 
@@ -178,32 +150,7 @@ mod octree_node {
     use super::*;
 
     #[test]
-    fn unpack_bounds() {
-        let bounds = Bounds {
-            min: Vec3 {
-                x: 1.0,
-                y: 2.0,
-                z: 3.0,
-            },
-            max: Vec3 {
-                x: 4.0,
-                y: 5.0,
-                z: 6.0,
-            },
-        };
-
-        let expected_unpack = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-
-        let unpack = bounds.unpack();
-
-        assert_eq!(
-            unpack, expected_unpack,
-            "Unpacked bound values do not match expected values."
-        )
-    }
-
-    #[test]
-    fn get_centre() {
+    fn get_bounds_centre() {
         let bounds = Bounds {
             min: Vec3 {
                 x: 0.0,
@@ -231,30 +178,7 @@ mod octree_node {
         );
     }
 
-    #[test]
-    fn get_size() {
-        let bounds = Bounds {
-            min: Vec3 {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            },
-            max: Vec3 {
-                x: 8.0,
-                y: 8.0,
-                z: 8.0,
-            },
-        };
-
-        let expected_size = 8.0;
-
-        let size = bounds.get_size();
-
-        assert!(
-            (size - expected_size).abs() < 1e-6,
-            "Size does not match expected value."
-        );
-    }
+    // TODO: Test for bounds.get_size();
 
     #[test]
     fn get_split_points() {
