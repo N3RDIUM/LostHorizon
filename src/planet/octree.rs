@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 use std::sync::{Arc, Mutex};
 
-pub struct NodeBounds {
+pub struct Bounds {
     pub min: Vec3,
     pub max: Vec3,
 }
 
-impl NodeBounds {
+impl Bounds {
     fn unpack(&self) -> [f32; 6] {
         let [min, max] = [self.min, self.max];
 
@@ -44,29 +44,29 @@ impl NodeBounds {
     }
 }
 
-enum NodeState {
+enum State {
     UNSPLIT,
     SPLIT,
 }
 
 pub struct Node {
-    bounds: NodeBounds,
+    bounds: Bounds,
     _child: Leaf,
     children: Vec<Arc<Mutex<Node>>>,
-    state: NodeState,
+    state: State,
 }
 
 impl Node {
-    pub fn new(bounds: NodeBounds) -> Node {
+    pub fn new(bounds: Bounds) -> Node {
         Node {
             bounds,
             _child: Leaf::new(),
             children: vec![],
-            state: NodeState::UNSPLIT,
+            state: State::UNSPLIT,
         }
     }
 
-    fn get_split_points(bounds: &NodeBounds) -> [f32; 9] {
+    fn get_split_points(bounds: &Bounds) -> [f32; 9] {
         let xmin = bounds.min.x;
         let ymin = bounds.min.y;
         let zmin = bounds.min.z;
@@ -82,7 +82,7 @@ impl Node {
         return [xmin, xmid, xmax, ymin, ymid, ymax, zmin, zmid, zmax];
     }
 
-    fn get_child_bounds(bounds: &NodeBounds) -> [[f32; 6]; 8] {
+    fn get_child_bounds(bounds: &Bounds) -> [[f32; 6]; 8] {
         let [xmin, xmid, xmax, ymin, ymid, ymax, zmin, zmid, zmax] = Node::get_split_points(bounds);
 
         return [
@@ -100,7 +100,7 @@ impl Node {
     fn add_child(&mut self, bounds: [f32; 6]) {
         let [xmin, xmax, ymin, ymax, zmin, zmax] = bounds;
 
-        let new_node = Node::new(NodeBounds {
+        let new_node = Node::new(Bounds {
             min: Vec3 {
                 x: xmin,
                 y: ymin,
@@ -118,15 +118,15 @@ impl Node {
 
     fn split(&mut self) {
         match self.state {
-            NodeState::SPLIT => return,
-            NodeState::UNSPLIT => {
+            State::SPLIT => return,
+            State::UNSPLIT => {
                 let child_bounds = Node::get_child_bounds(&self.bounds);
 
                 for (_, bounds) in child_bounds.iter().enumerate() {
                     self.add_child(*bounds);
                 }
 
-                self.state = NodeState::SPLIT;
+                self.state = State::SPLIT;
             }
         }
     }
@@ -141,10 +141,10 @@ impl Node {
 
     fn unsplit(&mut self) {
         match self.state {
-            NodeState::UNSPLIT => return,
-            NodeState::SPLIT => {
+            State::UNSPLIT => return,
+            State::SPLIT => {
                 self.dispose_children();
-                self.state = NodeState::UNSPLIT;
+                self.state = State::UNSPLIT;
             }
         }
     }
@@ -179,7 +179,7 @@ mod octree_node {
 
     #[test]
     fn unpack_bounds() {
-        let bounds = NodeBounds {
+        let bounds = Bounds {
             min: Vec3 {
                 x: 1.0,
                 y: 2.0,
@@ -204,7 +204,7 @@ mod octree_node {
 
     #[test]
     fn get_centre() {
-        let bounds = NodeBounds {
+        let bounds = Bounds {
             min: Vec3 {
                 x: 0.0,
                 y: 0.0,
@@ -233,7 +233,7 @@ mod octree_node {
 
     #[test]
     fn get_size() {
-        let bounds = NodeBounds {
+        let bounds = Bounds {
             min: Vec3 {
                 x: 0.0,
                 y: 0.0,
@@ -258,7 +258,7 @@ mod octree_node {
 
     #[test]
     fn get_split_points() {
-        let bounds = NodeBounds {
+        let bounds = Bounds {
             min: Vec3 {
                 x: 0.0,
                 y: 0.0,
@@ -283,7 +283,7 @@ mod octree_node {
 
     #[test]
     fn get_child_bounds() {
-        let bounds = NodeBounds {
+        let bounds = Bounds {
             min: Vec3 {
                 x: 0.0,
                 y: 0.0,

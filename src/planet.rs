@@ -10,7 +10,7 @@ pub struct Planet {
 
 impl Planet {
     pub fn new() -> Planet {
-        let octree = octree::Node::new(octree::NodeBounds {
+        let octree = octree::Node::new(octree::Bounds {
             min: Vec3::new(-1.0, -1.0, -1.0),
             max: Vec3::new(1.0, 1.0, 1.0),
         });
